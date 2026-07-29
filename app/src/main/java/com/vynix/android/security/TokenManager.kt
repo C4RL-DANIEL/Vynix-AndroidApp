@@ -24,7 +24,7 @@ class TokenManager(context: Context) {
             .putString("auth_token", value)
             .apply()
 
-    var refreshToken: String?
+    private var storedRefreshToken: String?
         get() = prefs.getString("refresh_token", null)
         set(value) = prefs.edit()
             .putString("refresh_token", value)
@@ -36,7 +36,7 @@ class TokenManager(context: Context) {
     }
 
     fun saveRefreshToken(value: String) {
-        refreshToken = value
+        storedRefreshToken = value
     }
 
     fun getAccessToken(): String? {
