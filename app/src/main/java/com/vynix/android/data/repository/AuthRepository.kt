@@ -11,7 +11,7 @@ import kotlinx.coroutines.withContext
 
 class AuthRepository {
 
-    private val authApi: AuthApi = ApiClient.createService(AuthApi::class.java)
+    private val authApi: AuthApi = ApiClient.authApi
 
     suspend fun login(email: String, password: String): Result<LoginResponse> {
         return try {

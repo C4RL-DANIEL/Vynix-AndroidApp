@@ -45,7 +45,7 @@ class LoginViewModel(application: Application) : AndroidViewModel(application) {
             val result = authRepository.login(current.email, current.password)
             result.fold(
                 onSuccess = { response ->
-                    tokenManager.saveAccessToken(response.accessToken)
+                    tokenManager.saveAccessToken(response.token)
                     tokenManager.saveRefreshToken(response.refreshToken)
                     _uiState.value = _uiState.value.copy(
                         isLoading = false,
