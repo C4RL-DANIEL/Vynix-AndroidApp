@@ -43,9 +43,6 @@ class TokenManager(context: Context) {
         return token
     }
 
-    fun getRefreshToken(): String? {
-        return refreshToken
-    }
 
     fun clear() {
         prefs.edit()
