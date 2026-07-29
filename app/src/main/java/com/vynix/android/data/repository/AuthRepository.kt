@@ -3,6 +3,7 @@ package com.vynix.android.data.repository
 import com.vynix.android.data.remote.ApiClient
 import com.vynix.android.data.remote.api.AuthApi
 import com.vynix.android.model.LoginRequest
+import com.vynix.android.model.RegisterRequest
 import com.vynix.android.model.LoginResponse
 import com.vynix.android.model.RefreshTokenRequest
 import kotlinx.coroutines.Dispatchers
