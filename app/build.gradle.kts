@@ -59,6 +59,7 @@ android {
 }
 
 dependencies {
+    implementation("com.google.android.material:material:1.11.0")
     implementation(platform("androidx.compose:compose-bom:2024.01.00"))
 
     // Core AndroidX
