@@ -1,9 +1,34 @@
 package com.vynix.android.ui.login
 
-import androidx.compose.foundation.layout.*
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.ImeAction
@@ -31,7 +56,8 @@ fun LoginScreen(onLoginSuccess: () -> Unit) {
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-                .padding(horizontal = 24.dp),
+                .padding(horizontal = 24.dp)
+                .animateContentSize(),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
@@ -68,31 +94,57 @@ fun LoginScreen(onLoginSuccess: () -> Unit) {
                 modifier = Modifier.fillMaxWidth()
             )
 
-            if (state.error != null) {
-                Spacer(modifier = Modifier.height(8.dp))
+            // Animated error area
+            val errorVisible by remember(state.error) {
+                derivedStateOf { state.error != null }
+            }
+            AnimatedVisibility(
+                visible = errorVisible,
+                enter = fadeIn(animationSpec = tween(300)) +
+                        expandVertically(expandFrom = Alignment.Top, animationSpec = tween(300)),
+                exit = fadeOut(animationSpec = tween(300)) +
+                        shrinkVertically(shrinkTowards = Alignment.Top, animationSpec = tween(300))
+            ) {
                 Text(
-                    text = state.error!!,
+                    text = state.error ?: "",
                     color = MaterialTheme.colorScheme.error,
                     style = MaterialTheme.typography.bodyMedium,
                     textAlign = TextAlign.Center,
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 8.dp)
                 )
             }
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            Button(
-                onClick = viewModel::login,
-                enabled = !state.isLoading,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                if (state.isLoading) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.size(20.dp),
-                        strokeWidth = 2.dp
-                    )
-                } else {
-                    Text("Log in")
+            // Animated button content (loading vs. text)
+            AnimatedContent(
+                targetState = state.isLoading,
+                transitionSpec = {
+                    if (targetState) {
+                        (fadeIn(animationSpec = tween(200)) with
+                                fadeOut(animationSpec = tween(200)))
+                    } else {
+                        (fadeIn(animationSpec = tween(200)) with
+                                fadeOut(animationSpec = tween(200)))
+                    }
+                },
+                label = "loginButton"
+            ) { loading ->
+                Button(
+                    onClick = viewModel::login,
+                    enabled = !state.isLoading,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    if (loading) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(20.dp),
+                            strokeWidth = 2.dp
+                        )
+                    } else {
+                        Text("Log in")
+                    }
                 }
             }
         }
