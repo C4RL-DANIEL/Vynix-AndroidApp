@@ -1,0 +1,25 @@
+Update this Android app login system.
+
+Current backend authentication:
+POST /api/app/auth/request-otp
+Body: {"telegram_id": number}
+
+POST /api/app/auth/verify-otp
+Body: {"telegram_id": number, "otp": "6 digits"}
+
+Remove username/password login.
+Create Telegram OTP login UI:
+- Input Telegram ID
+- Button "Send OTP"
+- Input OTP
+- Button "Verify"
+- Save returned token using existing TokenManager
+- Navigate to Home after successful login
+
+Update:
+- AuthApi.kt
+- LoginViewModel
+- Login UI
+- Request/Response models
+
+Keep the existing UI theme and navigation.
