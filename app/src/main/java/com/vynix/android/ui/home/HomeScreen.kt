@@ -18,7 +18,7 @@ fun HomeScreen() {
             contentAlignment = Alignment.Center
         ) {
             Text(
-                text = "Home (coming soon)",
+                text = "Hey there!",
                 style = MaterialTheme.typography.titleMedium
             )
         }
