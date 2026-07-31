@@ -8,6 +8,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -123,10 +124,10 @@ fun LoginScreen(onLoginSuccess: () -> Unit) {
                 targetState = state.isLoading,
                 transitionSpec = {
                     if (targetState) {
-                        (fadeIn(animationSpec = tween(200)) with
+                        (fadeIn(animationSpec = tween(200)) togetherWith
                                 fadeOut(animationSpec = tween(200)))
                     } else {
-                        (fadeIn(animationSpec = tween(200)) with
+                        (fadeIn(animationSpec = tween(200)) togetherWith
                                 fadeOut(animationSpec = tween(200)))
                     }
                 },
