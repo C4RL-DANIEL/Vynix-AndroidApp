@@ -12,8 +12,10 @@ import kotlinx.coroutines.launch
 
 data class LoginUiState(
     val email: String = "",
-    val password: String = "",
+    val otpCode: String = "",
     val isLoading: Boolean = false,
+    val isRequestingOtp: Boolean = false,
+    val otpSent: Boolean = false,
     val error: String? = null,
     val success: Boolean = false
 )
@@ -27,22 +29,57 @@ class LoginViewModel(application: Application) : AndroidViewModel(application) {
     val uiState: StateFlow<LoginUiState> = _uiState.asStateFlow()
 
     fun onEmailChange(value: String) {
-        _uiState.value = _uiState.value.copy(email = value, error = null)
+        _uiState.value = _uiState.value.copy(
+            email = value,
+            otpSent = false,
+            otpCode = "",
+            error = null
+        )
     }
 
-    fun onPasswordChange(value: String) {
-        _uiState.value = _uiState.value.copy(password = value, error = null)
+    fun onOtpCodeChange(value: String) {
+        _uiState.value = _uiState.value.copy(otpCode = value, error = null)
     }
 
-    fun login() {
+    fun requestOtp() {
         val current = _uiState.value
-        if (current.email.isBlank() || current.password.isBlank()) {
-            _uiState.value = current.copy(error = "Email and password required")
+        if (current.email.isBlank()) {
+            _uiState.value = current.copy(error = "Email is required")
+            return
+        }
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(
+                isRequestingOtp = true,
+                error = null
+            )
+            val result = authRepository.requestOtp(current.email)
+            result.fold(
+                onSuccess = {
+                    _uiState.value = _uiState.value.copy(
+                        isRequestingOtp = false,
+                        otpSent = true,
+                        error = null
+                    )
+                },
+                onFailure = { e ->
+                    _uiState.value = _uiState.value.copy(
+                        isRequestingOtp = false,
+                        error = e.message ?: "Failed to request OTP"
+                    )
+                }
+            )
+        }
+    }
+
+    fun verifyOtp() {
+        val current = _uiState.value
+        if (current.email.isBlank() || current.otpCode.isBlank()) {
+            _uiState.value = current.copy(error = "Email and OTP code required")
             return
         }
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true, error = null)
-            val result = authRepository.login(current.email, current.password)
+            val result = authRepository.verifyOtp(current.email, current.otpCode)
             result.fold(
                 onSuccess = { response ->
                     tokenManager.saveAccessToken(response.token)
@@ -55,7 +92,7 @@ class LoginViewModel(application: Application) : AndroidViewModel(application) {
                 onFailure = { e ->
                     _uiState.value = _uiState.value.copy(
                         isLoading = false,
-                        error = e.message ?: "Login failed"
+                        error = e.message ?: "OTP verification failed"
                     )
                 }
             )

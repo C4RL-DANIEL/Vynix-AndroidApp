@@ -19,4 +19,10 @@ interface AuthApi {
 
     @POST("auth/logout")
     suspend fun logout(): Response<Unit>
+
+    @POST("auth/request-otp")
+    suspend fun requestOtp(@Body request: OtpRequest): Response<Unit>
+
+    @POST("auth/verify-otp")
+    suspend fun verifyOtp(@Body request: VerifyOtpRequest): Response<LoginResponse>
 }

@@ -1,6 +1,5 @@
 package com.vynix.android.ui.login
 
-import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.expandVertically
@@ -8,7 +7,6 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -34,7 +32,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -82,18 +79,65 @@ fun LoginScreen(onLoginSuccess: () -> Unit) {
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            OutlinedTextField(
-                value = state.password,
-                onValueChange = viewModel::onPasswordChange,
-                label = { Text("Password") },
-                singleLine = true,
-                visualTransformation = PasswordVisualTransformation(),
-                keyboardOptions = KeyboardOptions(
-                    keyboardType = KeyboardType.Password,
-                    imeAction = ImeAction.Done
-                ),
-                modifier = Modifier.fillMaxWidth()
-            )
+            // Request OTP button (visible only when OTP has not been sent)
+            if (!state.otpSent) {
+                Button(
+                    onClick = viewModel::requestOtp,
+                    enabled = state.email.isNotBlank() && !state.isRequestingOtp,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    if (state.isRequestingOtp) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(20.dp),
+                            strokeWidth = 2.dp
+                        )
+                    } else {
+                        Text("Get OTP")
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(12.dp))
+            }
+
+            // OTP code input and verify button (visible after OTP has been requested)
+            AnimatedVisibility(
+                visible = state.otpSent,
+                enter = fadeIn(animationSpec = tween(300)) +
+                        expandVertically(expandFrom = Alignment.Top, animationSpec = tween(300)),
+                exit = fadeOut(animationSpec = tween(300)) +
+                        shrinkVertically(shrinkTowards = Alignment.Top, animationSpec = tween(300))
+            ) {
+                Column {
+                    OutlinedTextField(
+                        value = state.otpCode,
+                        onValueChange = viewModel::onOtpCodeChange,
+                        label = { Text("OTP code") },
+                        singleLine = true,
+                        keyboardOptions = KeyboardOptions(
+                            keyboardType = KeyboardType.Number,
+                            imeAction = ImeAction.Done
+                        ),
+                        modifier = Modifier.fillMaxWidth()
+                    )
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    Button(
+                        onClick = viewModel::verifyOtp,
+                        enabled = state.otpCode.isNotBlank() && !state.isLoading,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        if (state.isLoading) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(20.dp),
+                                strokeWidth = 2.dp
+                            )
+                        } else {
+                            Text("Verify OTP")
+                        }
+                    }
+                }
+            }
 
             // Animated error area
             val errorVisible by remember(state.error) {
@@ -115,38 +159,6 @@ fun LoginScreen(onLoginSuccess: () -> Unit) {
                         .fillMaxWidth()
                         .padding(top = 8.dp)
                 )
-            }
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            // Animated button content (loading vs. text)
-            AnimatedContent(
-                targetState = state.isLoading,
-                transitionSpec = {
-                    if (targetState) {
-                        (fadeIn(animationSpec = tween(200)) togetherWith
-                                fadeOut(animationSpec = tween(200)))
-                    } else {
-                        (fadeIn(animationSpec = tween(200)) togetherWith
-                                fadeOut(animationSpec = tween(200)))
-                    }
-                },
-                label = "loginButton"
-            ) { loading ->
-                Button(
-                    onClick = viewModel::login,
-                    enabled = !state.isLoading,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    if (loading) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(20.dp),
-                            strokeWidth = 2.dp
-                        )
-                    } else {
-                        Text("Log in")
-                    }
-                }
             }
         }
     }
