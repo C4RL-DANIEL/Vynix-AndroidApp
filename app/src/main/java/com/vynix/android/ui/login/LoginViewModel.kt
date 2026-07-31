@@ -52,22 +52,29 @@ class LoginViewModel(application: Application) : AndroidViewModel(application) {
                 isRequestingOtp = true,
                 error = null
             )
-            val result = authRepository.requestOtp(current.telegramId)
-            result.fold(
-                onSuccess = {
-                    _uiState.value = _uiState.value.copy(
-                        isRequestingOtp = false,
-                        otpSent = true,
-                        error = null
-                    )
-                },
-                onFailure = { e ->
-                    _uiState.value = _uiState.value.copy(
-                        isRequestingOtp = false,
-                        error = e.message ?: "Failed to request OTP"
-                    )
-                }
-            )
+            try {
+                val result = authRepository.requestOtp(current.telegramId)
+                result.fold(
+                    onSuccess = {
+                        _uiState.value = _uiState.value.copy(
+                            isRequestingOtp = false,
+                            otpSent = true,
+                            error = null
+                        )
+                    },
+                    onFailure = { e ->
+                        _uiState.value = _uiState.value.copy(
+                            isRequestingOtp = false,
+                            error = e.message ?: "Failed to request OTP"
+                        )
+                    }
+                )
+            } catch (e: Exception) {
+                _uiState.value = _uiState.value.copy(
+                    isRequestingOtp = false,
+                    error = e.message ?: "Unexpected error"
+                )
+            }
         }
     }
 
@@ -79,23 +86,30 @@ class LoginViewModel(application: Application) : AndroidViewModel(application) {
         }
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true, error = null)
-            val result = authRepository.verifyOtp(current.telegramId, current.otpCode)
-            result.fold(
-                onSuccess = { response ->
-                    tokenManager.saveAccessToken(response.token)
-                    tokenManager.saveRefreshToken(response.refreshToken)
-                    _uiState.value = _uiState.value.copy(
-                        isLoading = false,
-                        success = true
-                    )
-                },
-                onFailure = { e ->
-                    _uiState.value = _uiState.value.copy(
-                        isLoading = false,
-                        error = e.message ?: "OTP verification failed"
-                    )
-                }
-            )
+            try {
+                val result = authRepository.verifyOtp(current.telegramId, current.otpCode)
+                result.fold(
+                    onSuccess = { response ->
+                        tokenManager.saveAccessToken(response.token)
+                        tokenManager.saveRefreshToken(response.refreshToken)
+                        _uiState.value = _uiState.value.copy(
+                            isLoading = false,
+                            success = true
+                        )
+                    },
+                    onFailure = { e ->
+                        _uiState.value = _uiState.value.copy(
+                            isLoading = false,
+                            error = e.message ?: "OTP verification failed"
+                        )
+                    }
+                )
+            } catch (e: Exception) {
+                _uiState.value = _uiState.value.copy(
+                    isLoading = false,
+                    error = e.message ?: "OTP verification error"
+                )
+            }
         }
     }
 
