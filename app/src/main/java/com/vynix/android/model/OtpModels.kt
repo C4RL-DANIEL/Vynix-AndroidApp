@@ -1,14 +1,15 @@
 package com.vynix.android.model
 
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
 data class OtpRequest(
-    val email: String
+    @SerialName("telegram_id") val telegramId: String
 )
 
 @Serializable
 data class VerifyOtpRequest(
-    val email: String,
+    @SerialName("telegram_id") val telegramId: String,
     val code: String
 )
