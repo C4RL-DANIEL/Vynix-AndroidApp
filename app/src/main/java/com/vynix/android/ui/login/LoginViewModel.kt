@@ -97,12 +97,21 @@ class LoginViewModel(application: Application) : AndroidViewModel(application) {
                 val result = authRepository.verifyOtp(current.email, current.otpCode)
                 result.fold(
                     onSuccess = { response ->
-                        tokenManager.saveAccessToken(response.token)
-                        tokenManager.saveRefreshToken(response.refreshToken)
-                        _uiState.value = _uiState.value.copy(
-                            isLoading = false,
-                            success = true
-                        )
+                        val accessToken = response.token
+                        val refreshToken = response.refreshToken
+                        if (accessToken.isNullOrBlank() || refreshToken.isNullOrBlank()) {
+                            _uiState.value = _uiState.value.copy(
+                                isLoading = false,
+                                error = "Server returned an empty token"
+                            )
+                        } else {
+                            tokenManager.saveAccessToken(accessToken)
+                            tokenManager.saveRefreshToken(refreshToken)
+                            _uiState.value = _uiState.value.copy(
+                                isLoading = false,
+                                success = true
+                            )
+                        }
                     },
                     onFailure = { e ->
                         _uiState.value = _uiState.value.copy(
