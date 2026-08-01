@@ -27,7 +27,7 @@ class AuthRepository {
                 if (body != null) Result.success(body)
                 else Result.failure(Exception("Invalid login response body"))
             } else {
-                val errorMsg = response.errorBody()?.string() ?: "Unknown error"
+                val errorMsg = safeErrorBody(response.errorBody())
                 Result.failure(Exception("Login failed (${response.code()}): $errorMsg"))
             }
         } catch (e: Exception) {
@@ -46,7 +46,7 @@ class AuthRepository {
                 if (body != null) Result.success(body)
                 else Result.failure(Exception("Invalid registration response body"))
             } else {
-                val errorMsg = response.errorBody()?.string() ?: "Unknown error"
+                val errorMsg = safeErrorBody(response.errorBody())
                 Result.failure(Exception("Registration failed (${response.code()}): $errorMsg"))
             }
         } catch (e: Exception) {
@@ -62,7 +62,7 @@ class AuthRepository {
             if (response.isSuccessful) {
                 Result.success(Unit)
             } else {
-                val errorMsg = response.errorBody()?.string() ?: "Unknown error"
+                val errorMsg = safeErrorBody(response.errorBody())
                 Result.failure(Exception("Request email OTP failed (${response.code()}): $errorMsg"))
             }
         } catch (e: Exception) {
@@ -81,7 +81,7 @@ class AuthRepository {
                 if (body != null) Result.success(body)
                 else Result.failure(Exception("Empty OTP verification response"))
             } else {
-                val errorMsg = response.errorBody()?.string() ?: "Unknown error"
+                val errorMsg = safeErrorBody(response.errorBody())
                 Result.failure(Exception("Verify email OTP failed (${response.code()}): $errorMsg"))
             }
         } catch (e: Exception) {
@@ -100,7 +100,7 @@ class AuthRepository {
                 if (body != null) Result.success(body)
                 else Result.failure(Exception("Empty token refresh response"))
             } else {
-                val errorMsg = response.errorBody()?.string() ?: "Unknown error"
+                val errorMsg = safeErrorBody(response.errorBody())
                 Result.failure(Exception("Token refresh failed (${response.code()}): $errorMsg"))
             }
         } catch (e: Exception) {
@@ -116,11 +116,19 @@ class AuthRepository {
             if (response.isSuccessful) {
                 Result.success(Unit)
             } else {
-                val errorMsg = response.errorBody()?.string() ?: "Unknown error"
+                val errorMsg = safeErrorBody(response.errorBody())
                 Result.failure(Exception("Logout failed (${response.code()}): $errorMsg"))
             }
         } catch (e: Exception) {
             Result.failure(e)
+        }
+    }
+
+    private fun safeErrorBody(errorBody: okhttp3.ResponseBody?): String {
+        return try {
+            errorBody?.string() ?: "Unknown error"
+        } catch (_: Exception) {
+            "Unknown error"
         }
     }
 }
