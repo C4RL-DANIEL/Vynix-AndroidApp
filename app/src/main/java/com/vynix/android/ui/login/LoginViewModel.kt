@@ -55,20 +55,13 @@ class LoginViewModel(application: Application) : AndroidViewModel(application) {
             try {
                 val result = authRepository.requestOtp(current.email)
                 result.fold(
-                    onSuccess = { otpResponse ->
-                        // Safely handle a body that might be null or missing fields
-                        if (otpResponse?.ok == true) {
-                            _uiState.value = _uiState.value.copy(
-                                isRequestingOtp = false,
-                                otpSent = true,
-                                error = null
-                            )
-                        } else {
-                            _uiState.value = _uiState.value.copy(
-                                isRequestingOtp = false,
-                                error = otpResponse?.message?.ifBlank { "Unknown error" } ?: "Unknown error"
-                            )
-                        }
+                    onSuccess = {
+                        // API responded successfully – mark OTP as sent.
+                        _uiState.value = _uiState.value.copy(
+                            isRequestingOtp = false,
+                            otpSent = true,
+                            error = null
+                        )
                     },
                     onFailure = { e ->
                         _uiState.value = _uiState.value.copy(
@@ -106,9 +99,8 @@ class LoginViewModel(application: Application) : AndroidViewModel(application) {
                                 error = "Server returned an empty token"
                             )
                         } else {
-                            // Force non‑null since we already checked
-                            tokenManager.saveAccessToken(accessToken!!)
-                            tokenManager.saveRefreshToken(refreshToken!!)
+                            tokenManager.saveAccessToken(accessToken)
+                            tokenManager.saveRefreshToken(refreshToken)
                             _uiState.value = _uiState.value.copy(
                                 isLoading = false,
                                 success = true

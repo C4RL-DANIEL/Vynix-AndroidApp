@@ -47,9 +47,16 @@ class AuthRepository {
                 authApi.verifyOtp(request)
             }
             if (response.isSuccessful) {
-                val body = response.body()
-                if (body != null) Result.success(body)
-                else Result.failure(Exception("Empty OTP verification response"))
+                try {
+                    val body = response.body()
+                    if (body != null) {
+                        Result.success(body)
+                    } else {
+                        Result.failure(Exception("Empty OTP verification response"))
+                    }
+                } catch (se: SerializationException) {
+                    Result.failure(Exception("Failed to parse OTP verification response: ${se.message}"))
+                }
             } else {
                 val errorMsg = safeErrorBody(response.errorBody())
                 Result.failure(Exception("Verify email OTP failed (${response.code()}): $errorMsg"))
