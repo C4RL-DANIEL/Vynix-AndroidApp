@@ -5,6 +5,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.vynix.android.data.repository.AuthRepository
 import com.vynix.android.security.TokenManager
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -28,6 +29,16 @@ class LoginViewModel(application: Application) : AndroidViewModel(application) {
     private val _uiState = MutableStateFlow(LoginUiState())
     val uiState: StateFlow<LoginUiState> = _uiState.asStateFlow()
 
+    private val exceptionHandler = CoroutineExceptionHandler { _, throwable ->
+        // Catch any unhandled exception that would otherwise crash the app,
+        // set the UI into a safe state and show the error message.
+        _uiState.value = _uiState.value.copy(
+            isRequestingOtp = false,
+            isLoading = false,
+            error = throwable.message ?: "Unexpected error"
+        )
+    }
+
     fun onEmailChange(value: String) {
         _uiState.value = _uiState.value.copy(
             email = value,
@@ -47,7 +58,7 @@ class LoginViewModel(application: Application) : AndroidViewModel(application) {
             _uiState.value = current.copy(error = "Email is required")
             return
         }
-        viewModelScope.launch {
+        viewModelScope.launch(exceptionHandler) {
             _uiState.value = _uiState.value.copy(
                 isRequestingOtp = true,
                 error = null
@@ -85,7 +96,7 @@ class LoginViewModel(application: Application) : AndroidViewModel(application) {
             _uiState.value = current.copy(error = "Email and OTP code required")
             return
         }
-        viewModelScope.launch {
+        viewModelScope.launch(exceptionHandler) {
             _uiState.value = _uiState.value.copy(isLoading = true, error = null)
             try {
                 val result = authRepository.verifyOtp(current.email, current.otpCode)
