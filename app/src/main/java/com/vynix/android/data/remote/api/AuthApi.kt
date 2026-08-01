@@ -5,11 +5,11 @@ import retrofit2.Response
 import retrofit2.http.*
 
 interface AuthApi {
-    @POST("auth/login")
-    suspend fun login(@Body request: LoginRequest): Response<LoginResponse>
+    @POST("api/app/auth/request-otp")
+    suspend fun requestOtp(@Body request: OtpRequest): Response<OtpResponse>
 
-    @POST("auth/register")
-    suspend fun register(@Body request: RegisterRequest): Response<LoginResponse>
+    @POST("api/app/auth/verify-otp")
+    suspend fun verifyOtp(@Body request: VerifyOtpRequest): Response<LoginResponse>
 
     @GET("auth/profile")
     suspend fun getProfile(): Response<UserProfile>
@@ -19,10 +19,4 @@ interface AuthApi {
 
     @POST("auth/logout")
     suspend fun logout(): Response<Unit>
-
-    @POST("auth/request-otp")
-    suspend fun requestOtp(@Body request: OtpRequest): Response<Unit>
-
-    @POST("auth/verify-otp")
-    suspend fun verifyOtp(@Body request: VerifyOtpRequest): Response<LoginResponse>
 }

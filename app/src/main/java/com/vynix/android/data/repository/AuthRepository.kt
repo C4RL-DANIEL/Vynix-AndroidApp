@@ -2,10 +2,9 @@ package com.vynix.android.data.repository
 
 import com.vynix.android.data.remote.ApiClient
 import com.vynix.android.data.remote.api.AuthApi
-import com.vynix.android.model.LoginRequest
-import com.vynix.android.model.RegisterRequest
 import com.vynix.android.model.LoginResponse
 import com.vynix.android.model.OtpRequest
+import com.vynix.android.model.OtpResponse
 import com.vynix.android.model.VerifyOtpRequest
 import com.vynix.android.model.RefreshTokenRequest
 import kotlinx.coroutines.Dispatchers
@@ -15,52 +14,15 @@ class AuthRepository {
 
     private val authApi: AuthApi = ApiClient.authApi
 
-    suspend fun login(email: String, password: String): Result<LoginResponse> {
-        // Kept for backward compatibility but not used now
-        return try {
-            val request = LoginRequest(email, password)
-            val response = withContext(Dispatchers.IO) {
-                authApi.login(request)
-            }
-            if (response.isSuccessful) {
-                val body = response.body()
-                if (body != null) Result.success(body)
-                else Result.failure(Exception("Invalid login response body"))
-            } else {
-                val errorMsg = safeErrorBody(response.errorBody())
-                Result.failure(Exception("Login failed (${response.code()}): $errorMsg"))
-            }
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
-    }
-
-    suspend fun register(email: String, password: String, name: String): Result<LoginResponse> {
-        val request = RegisterRequest(email, password, name)
-        return try {
-            val response = withContext(Dispatchers.IO) {
-                authApi.register(request)
-            }
-            if (response.isSuccessful) {
-                val body = response.body()
-                if (body != null) Result.success(body)
-                else Result.failure(Exception("Invalid registration response body"))
-            } else {
-                val errorMsg = safeErrorBody(response.errorBody())
-                Result.failure(Exception("Registration failed (${response.code()}): $errorMsg"))
-            }
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
-    }
-
-    suspend fun requestOtp(email: String): Result<Unit> {
+    suspend fun requestOtp(email: String): Result<OtpResponse> {
         return try {
             val response = withContext(Dispatchers.IO) {
                 authApi.requestOtp(OtpRequest(email))
             }
             if (response.isSuccessful) {
-                Result.success(Unit)
+                val body = response.body()
+                if (body != null) Result.success(body)
+                else Result.failure(Exception("Empty OTP response"))
             } else {
                 val errorMsg = safeErrorBody(response.errorBody())
                 Result.failure(Exception("Request email OTP failed (${response.code()}): $errorMsg"))
