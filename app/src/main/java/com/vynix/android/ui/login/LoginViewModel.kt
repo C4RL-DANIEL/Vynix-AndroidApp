@@ -11,7 +11,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 data class LoginUiState(
-    val telegramId: String = "",
+    val email: String = "",
     val otpCode: String = "",
     val isLoading: Boolean = false,
     val isRequestingOtp: Boolean = false,
@@ -28,9 +28,9 @@ class LoginViewModel(application: Application) : AndroidViewModel(application) {
     private val _uiState = MutableStateFlow(LoginUiState())
     val uiState: StateFlow<LoginUiState> = _uiState.asStateFlow()
 
-    fun onTelegramIdChange(value: String) {
+    fun onEmailChange(value: String) {
         _uiState.value = _uiState.value.copy(
-            telegramId = value,
+            email = value,
             otpSent = false,
             otpCode = "",
             error = null
@@ -43,8 +43,8 @@ class LoginViewModel(application: Application) : AndroidViewModel(application) {
 
     fun requestOtp() {
         val current = _uiState.value
-        if (current.telegramId.isBlank()) {
-            _uiState.value = current.copy(error = "Telegram ID is required")
+        if (current.email.isBlank()) {
+            _uiState.value = current.copy(error = "Email is required")
             return
         }
         viewModelScope.launch {
@@ -53,7 +53,7 @@ class LoginViewModel(application: Application) : AndroidViewModel(application) {
                 error = null
             )
             try {
-                val result = authRepository.requestOtp(current.telegramId)
+                val result = authRepository.requestOtp(current.email)
                 result.fold(
                     onSuccess = {
                         _uiState.value = _uiState.value.copy(
@@ -80,14 +80,14 @@ class LoginViewModel(application: Application) : AndroidViewModel(application) {
 
     fun verifyOtp() {
         val current = _uiState.value
-        if (current.telegramId.isBlank() || current.otpCode.isBlank()) {
-            _uiState.value = current.copy(error = "Telegram ID and OTP code required")
+        if (current.email.isBlank() || current.otpCode.isBlank()) {
+            _uiState.value = current.copy(error = "Email and OTP code required")
             return
         }
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true, error = null)
             try {
-                val result = authRepository.verifyOtp(current.telegramId, current.otpCode)
+                val result = authRepository.verifyOtp(current.email, current.otpCode)
                 result.fold(
                     onSuccess = { response ->
                         tokenManager.saveAccessToken(response.token)

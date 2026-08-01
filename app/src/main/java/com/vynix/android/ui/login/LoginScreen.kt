@@ -66,12 +66,12 @@ fun LoginScreen(onLoginSuccess: () -> Unit) {
             )
 
             OutlinedTextField(
-                value = state.telegramId,
-                onValueChange = viewModel::onTelegramIdChange,
-                label = { Text("Telegram ID") },
+                value = state.email,
+                onValueChange = viewModel::onEmailChange,
+                label = { Text("Email") },
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(
-                    keyboardType = KeyboardType.Text,
+                    keyboardType = KeyboardType.Email,
                     imeAction = ImeAction.Next
                 ),
                 modifier = Modifier.fillMaxWidth()
@@ -83,7 +83,7 @@ fun LoginScreen(onLoginSuccess: () -> Unit) {
             if (!state.otpSent) {
                 Button(
                     onClick = viewModel::requestOtp,
-                    enabled = state.telegramId.isNotBlank() && !state.isRequestingOtp,
+                    enabled = state.email.isNotBlank() && !state.isRequestingOtp,
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     if (state.isRequestingOtp) {

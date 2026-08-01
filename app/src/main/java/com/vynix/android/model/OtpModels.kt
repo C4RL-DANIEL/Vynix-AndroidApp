@@ -5,11 +5,11 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class OtpRequest(
-    @SerialName("telegram_id") val telegramId: String
+    @SerialName("email") val email: String
 )
 
 @Serializable
 data class VerifyOtpRequest(
-    @SerialName("telegram_id") val telegramId: String,
+    @SerialName("email") val email: String,
     val code: String
 )

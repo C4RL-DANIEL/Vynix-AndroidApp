@@ -54,25 +54,25 @@ class AuthRepository {
         }
     }
 
-    suspend fun requestOtp(telegramId: String): Result<Unit> {
+    suspend fun requestOtp(email: String): Result<Unit> {
         return try {
             val response = withContext(Dispatchers.IO) {
-                authApi.requestOtp(OtpRequest(telegramId))
+                authApi.requestOtp(OtpRequest(email))
             }
             if (response.isSuccessful) {
                 Result.success(Unit)
             } else {
                 val errorMsg = response.errorBody()?.string() ?: "Unknown error"
-                Result.failure(Exception("Request OTP failed (${response.code()}): $errorMsg"))
+                Result.failure(Exception("Request email OTP failed (${response.code()}): $errorMsg"))
             }
         } catch (e: Exception) {
             Result.failure(e)
         }
     }
 
-    suspend fun verifyOtp(telegramId: String, code: String): Result<LoginResponse> {
+    suspend fun verifyOtp(email: String, code: String): Result<LoginResponse> {
         return try {
-            val request = VerifyOtpRequest(telegramId, code)
+            val request = VerifyOtpRequest(email, code)
             val response = withContext(Dispatchers.IO) {
                 authApi.verifyOtp(request)
             }
@@ -82,7 +82,7 @@ class AuthRepository {
                 else Result.failure(Exception("Empty OTP verification response"))
             } else {
                 val errorMsg = response.errorBody()?.string() ?: "Unknown error"
-                Result.failure(Exception("Verify OTP failed (${response.code()}): $errorMsg"))
+                Result.failure(Exception("Verify email OTP failed (${response.code()}): $errorMsg"))
             }
         } catch (e: Exception) {
             Result.failure(e)
