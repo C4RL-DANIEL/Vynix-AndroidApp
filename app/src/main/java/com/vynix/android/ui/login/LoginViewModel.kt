@@ -55,12 +55,19 @@ class LoginViewModel(application: Application) : AndroidViewModel(application) {
             try {
                 val result = authRepository.requestOtp(current.email)
                 result.fold(
-                    onSuccess = { _ ->
-                        _uiState.value = _uiState.value.copy(
-                            isRequestingOtp = false,
-                            otpSent = true,
-                            error = null
-                        )
+                    onSuccess = { otpResponse ->
+                        if (otpResponse.ok) {
+                            _uiState.value = _uiState.value.copy(
+                                isRequestingOtp = false,
+                                otpSent = true,
+                                error = null
+                            )
+                        } else {
+                            _uiState.value = _uiState.value.copy(
+                                isRequestingOtp = false,
+                                error = otpResponse.message.ifBlank { "Unknown error" }
+                            )
+                        }
                     },
                     onFailure = { e ->
                         _uiState.value = _uiState.value.copy(
