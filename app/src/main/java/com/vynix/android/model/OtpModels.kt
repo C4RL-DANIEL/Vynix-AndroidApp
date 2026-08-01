@@ -10,8 +10,8 @@ data class OtpRequest(
 
 @Serializable
 data class OtpResponse(
-    val ok: Boolean,
-    val message: String
+    @SerialName("ok") val ok: Boolean = false,
+    @SerialName("message") val message: String = ""
 )
 
 @Serializable
