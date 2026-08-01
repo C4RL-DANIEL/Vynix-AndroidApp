@@ -9,6 +9,7 @@ import com.vynix.android.model.VerifyOtpRequest
 import com.vynix.android.model.RefreshTokenRequest
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.SerializationException
 
 class AuthRepository {
 
@@ -20,9 +21,16 @@ class AuthRepository {
                 authApi.requestOtp(OtpRequest(email))
             }
             if (response.isSuccessful) {
-                val body = response.body()
-                if (body != null) Result.success(body)
-                else Result.failure(Exception("Empty OTP response"))
+                try {
+                    val body = response.body()
+                    if (body != null) {
+                        Result.success(body)
+                    } else {
+                        Result.failure(Exception("Empty OTP response"))
+                    }
+                } catch (se: SerializationException) {
+                    Result.failure(Exception("Failed to parse OTP response: ${se.message}"))
+                }
             } else {
                 val errorMsg = safeErrorBody(response.errorBody())
                 Result.failure(Exception("Request email OTP failed (${response.code()}): $errorMsg"))
