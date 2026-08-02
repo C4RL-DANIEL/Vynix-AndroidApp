@@ -24,17 +24,30 @@ data class LoginUiState(
 class LoginViewModel(application: Application) : AndroidViewModel(application) {
 
     private val authRepository = AuthRepository()
-    private val tokenManager = TokenManager(application)
+    private var tokenManager: TokenManager? = null
 
     private val _uiState = MutableStateFlow(LoginUiState())
     val uiState: StateFlow<LoginUiState> = _uiState.asStateFlow()
 
+    // Catch any Throwable that would otherwise crash the app, set the UI into a safe state
+    // and show the error message.
     private val exceptionHandler = CoroutineExceptionHandler { _, throwable ->
         _uiState.value = _uiState.value.copy(
             isRequestingOtp = false,
             isLoading = false,
             error = "${throwable.javaClass.simpleName}: ${throwable.message ?: "Unexpected error"}"
         )
+    }
+
+    init {
+        try {
+            tokenManager = TokenManager(getApplication())
+        } catch (t: Throwable) {
+            // Show the error to the user, leave tokenManager null.
+            _uiState.value = _uiState.value.copy(
+                error = "Could not initialise secure storage: ${t.javaClass.simpleName}: ${t.message}"
+            )
+        }
     }
 
     fun onEmailChange(value: String) {
@@ -107,12 +120,20 @@ class LoginViewModel(application: Application) : AndroidViewModel(application) {
                                 error = "Server returned an empty token"
                             )
                         } else {
-                            tokenManager.saveAccessToken(accessToken)
-                            tokenManager.saveRefreshToken(refreshToken)
-                            _uiState.value = _uiState.value.copy(
-                                isLoading = false,
-                                success = true
-                            )
+                            val tm = tokenManager
+                            if (tm == null) {
+                                _uiState.value = _uiState.value.copy(
+                                    isLoading = false,
+                                    error = "Secure storage not available"
+                                )
+                            } else {
+                                tm.saveAccessToken(accessToken)
+                                tm.saveRefreshToken(refreshToken)
+                                _uiState.value = _uiState.value.copy(
+                                    isLoading = false,
+                                    success = true
+                                )
+                            }
                         }
                     },
                     onFailure = { e ->

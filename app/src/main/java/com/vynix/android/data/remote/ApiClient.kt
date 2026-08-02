@@ -18,30 +18,75 @@ object ApiClient {
         coerceInputValues = true
     }
 
+    // Build OkHttp client inside a safe block so any configuration error is caught
     private val okHttpClient: OkHttpClient by lazy {
-        val logging = HttpLoggingInterceptor().apply {
-            level = HttpLoggingInterceptor.Level.BODY
+        try {
+            val logging = HttpLoggingInterceptor().apply {
+                level = HttpLoggingInterceptor.Level.BODY
+            }
+            OkHttpClient.Builder()
+                .addInterceptor(logging)
+                .addInterceptor(AuthInterceptor())
+                .connectTimeout(30, TimeUnit.SECONDS)
+                .readTimeout(30, TimeUnit.SECONDS)
+                .build()
+        } catch (t: Throwable) {
+            throw RuntimeException("Failed to create OkHttp client: ${t.message}", t)
         }
-        OkHttpClient.Builder()
-            .addInterceptor(logging)
-            .addInterceptor(AuthInterceptor())
-            .connectTimeout(30, TimeUnit.SECONDS)
-            .readTimeout(30, TimeUnit.SECONDS)
-            .build()
     }
 
     private val retrofit: Retrofit by lazy {
-        Retrofit.Builder()
-            .baseUrl(BASE_URL)
-            .client(okHttpClient)
-            .addConverterFactory(json.asConverterFactory("application/json".toMediaType()))
-            .build()
+        try {
+            Retrofit.Builder()
+                .baseUrl(BASE_URL)
+                .client(okHttpClient)
+                .addConverterFactory(json.asConverterFactory("application/json".toMediaType()))
+                .build()
+        } catch (t: Throwable) {
+            throw RuntimeException("Failed to create Retrofit instance: ${t.message}", t)
+        }
     }
 
-    val authApi: AuthApi by lazy { retrofit.create(AuthApi::class.java) }
-    val quizApi: QuizApi by lazy { retrofit.create(QuizApi::class.java) }
-    val walletApi: WalletApi by lazy { retrofit.create(WalletApi::class.java) }
-    val leaderboardApi: LeaderboardApi by lazy { retrofit.create(LeaderboardApi::class.java) }
-    val supportApi: SupportApi by lazy { retrofit.create(SupportApi::class.java) }
-    val settingsApi: SettingsApi by lazy { retrofit.create(SettingsApi::class.java) }
+    val authApi: AuthApi by lazy {
+        try {
+            retrofit.create(AuthApi::class.java)
+        } catch (t: Throwable) {
+            throw RuntimeException("Failed to create AuthApi: ${t.message}", t)
+        }
+    }
+    val quizApi: QuizApi by lazy {
+        try {
+            retrofit.create(QuizApi::class.java)
+        } catch (t: Throwable) {
+            throw RuntimeException("Failed to create QuizApi: ${t.message}", t)
+        }
+    }
+    val walletApi: WalletApi by lazy {
+        try {
+            retrofit.create(WalletApi::class.java)
+        } catch (t: Throwable) {
+            throw RuntimeException("Failed to create WalletApi: ${t.message}", t)
+        }
+    }
+    val leaderboardApi: LeaderboardApi by lazy {
+        try {
+            retrofit.create(LeaderboardApi::class.java)
+        } catch (t: Throwable) {
+            throw RuntimeException("Failed to create LeaderboardApi: ${t.message}", t)
+        }
+    }
+    val supportApi: SupportApi by lazy {
+        try {
+            retrofit.create(SupportApi::class.java)
+        } catch (t: Throwable) {
+            throw RuntimeException("Failed to create SupportApi: ${t.message}", t)
+        }
+    }
+    val settingsApi: SettingsApi by lazy {
+        try {
+            retrofit.create(SettingsApi::class.java)
+        } catch (t: Throwable) {
+            throw RuntimeException("Failed to create SettingsApi: ${t.message}", t)
+        }
+    }
 }
