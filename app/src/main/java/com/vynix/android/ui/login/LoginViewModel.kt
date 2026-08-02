@@ -33,7 +33,7 @@ class LoginViewModel(application: Application) : AndroidViewModel(application) {
         _uiState.value = _uiState.value.copy(
             isRequestingOtp = false,
             isLoading = false,
-            error = throwable.message ?: "Unexpected error"
+            error = "${throwable.javaClass.simpleName}: ${throwable.message ?: "Unexpected error"}"
         )
     }
 
@@ -81,7 +81,7 @@ class LoginViewModel(application: Application) : AndroidViewModel(application) {
             } catch (t: Throwable) {
                 _uiState.value = _uiState.value.copy(
                     isRequestingOtp = false,
-                    error = t.message ?: "Unexpected error"
+                    error = "${t.javaClass.simpleName}: ${t.message ?: "Unexpected error"}"
                 )
             }
         }
@@ -125,7 +125,7 @@ class LoginViewModel(application: Application) : AndroidViewModel(application) {
             } catch (t: Throwable) {
                 _uiState.value = _uiState.value.copy(
                     isLoading = false,
-                    error = t.message ?: "OTP verification error"
+                    error = "${t.javaClass.simpleName}: ${t.message ?: "OTP verification error"}"
                 )
             }
         }
