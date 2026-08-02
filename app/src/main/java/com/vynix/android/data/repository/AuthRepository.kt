@@ -13,20 +13,30 @@ import kotlinx.serialization.SerializationException
 
 class AuthRepository {
 
-    private val authApi: AuthApi by lazy {
-        try {
-            ApiClient.authApi
+    private var _authApi: AuthApi? = null
+
+    private suspend fun getAuthApi(): Result<AuthApi> {
+        _authApi?.let { return Result.success(it) }
+        return try {
+            val api = ApiClient.authApi
+            _authApi = api
+            Result.success(api)
         } catch (t: Throwable) {
-            throw IllegalStateException(
-                "Cannot create API client: ${t.javaClass.simpleName}: ${t.message}", t
+            Result.failure(
+                Exception(
+                    "Cannot create API client: ${t.javaClass.simpleName}: ${t.message}",
+                    t
+                )
             )
         }
     }
 
     suspend fun requestOtp(email: String): Result<OtpResponse> {
+        val apiResult = getAuthApi()
+        val api = apiResult.getOrElse { return Result.failure(it) }
         return try {
             val response = withContext(Dispatchers.IO) {
-                authApi.requestOtp(OtpRequest(email))
+                api.requestOtp(OtpRequest(email))
             }
             if (response.isSuccessful) {
                 try {
@@ -49,10 +59,12 @@ class AuthRepository {
     }
 
     suspend fun verifyOtp(email: String, code: String): Result<LoginResponse> {
+        val apiResult = getAuthApi()
+        val api = apiResult.getOrElse { return Result.failure(it) }
         return try {
             val request = VerifyOtpRequest(email, code)
             val response = withContext(Dispatchers.IO) {
-                authApi.verifyOtp(request)
+                api.verifyOtp(request)
             }
             if (response.isSuccessful) {
                 try {
@@ -75,10 +87,12 @@ class AuthRepository {
     }
 
     suspend fun refreshToken(refreshToken: String): Result<LoginResponse> {
+        val apiResult = getAuthApi()
+        val api = apiResult.getOrElse { return Result.failure(it) }
         val request = RefreshTokenRequest(refreshToken)
         return try {
             val response = withContext(Dispatchers.IO) {
-                authApi.refreshToken(request)
+                api.refreshToken(request)
             }
             if (response.isSuccessful) {
                 val body = response.body()
@@ -94,9 +108,11 @@ class AuthRepository {
     }
 
     suspend fun logout(): Result<Unit> {
+        val apiResult = getAuthApi()
+        val api = apiResult.getOrElse { return Result.failure(it) }
         return try {
             val response = withContext(Dispatchers.IO) {
-                authApi.logout()
+                api.logout()
             }
             if (response.isSuccessful) {
                 Result.success(Unit)
