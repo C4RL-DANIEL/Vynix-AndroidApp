@@ -13,7 +13,7 @@ import kotlinx.serialization.SerializationException
 
 class AuthRepository {
 
-    private val authApi: AuthApi = ApiClient.authApi
+    private val authApi: AuthApi by lazy { ApiClient.authApi }
 
     suspend fun requestOtp(email: String): Result<OtpResponse> {
         return try {
@@ -35,8 +35,8 @@ class AuthRepository {
                 val errorMsg = safeErrorBody(response.errorBody())
                 Result.failure(Exception("Request email OTP failed (${response.code()}): $errorMsg"))
             }
-        } catch (e: Exception) {
-            Result.failure(e)
+        } catch (t: Throwable) {
+            Result.failure(Exception(t.message ?: "Unexpected OTP request error"))
         }
     }
 
@@ -61,8 +61,8 @@ class AuthRepository {
                 val errorMsg = safeErrorBody(response.errorBody())
                 Result.failure(Exception("Verify email OTP failed (${response.code()}): $errorMsg"))
             }
-        } catch (e: Exception) {
-            Result.failure(e)
+        } catch (t: Throwable) {
+            Result.failure(Exception(t.message ?: "Unexpected OTP verification error"))
         }
     }
 
@@ -80,8 +80,8 @@ class AuthRepository {
                 val errorMsg = safeErrorBody(response.errorBody())
                 Result.failure(Exception("Token refresh failed (${response.code()}): $errorMsg"))
             }
-        } catch (e: Exception) {
-            Result.failure(e)
+        } catch (t: Throwable) {
+            Result.failure(Exception(t.message ?: "Unexpected token refresh error"))
         }
     }
 
@@ -96,8 +96,8 @@ class AuthRepository {
                 val errorMsg = safeErrorBody(response.errorBody())
                 Result.failure(Exception("Logout failed (${response.code()}): $errorMsg"))
             }
-        } catch (e: Exception) {
-            Result.failure(e)
+        } catch (t: Throwable) {
+            Result.failure(Exception(t.message ?: "Unexpected logout error"))
         }
     }
 

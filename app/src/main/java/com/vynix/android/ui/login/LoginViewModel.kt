@@ -30,8 +30,6 @@ class LoginViewModel(application: Application) : AndroidViewModel(application) {
     val uiState: StateFlow<LoginUiState> = _uiState.asStateFlow()
 
     private val exceptionHandler = CoroutineExceptionHandler { _, throwable ->
-        // Catch any unhandled exception that would otherwise crash the app,
-        // set the UI into a safe state and show the error message.
         _uiState.value = _uiState.value.copy(
             isRequestingOtp = false,
             isLoading = false,
@@ -67,7 +65,6 @@ class LoginViewModel(application: Application) : AndroidViewModel(application) {
                 val result = authRepository.requestOtp(current.email)
                 result.fold(
                     onSuccess = {
-                        // API responded successfully – mark OTP as sent.
                         _uiState.value = _uiState.value.copy(
                             isRequestingOtp = false,
                             otpSent = true,
@@ -81,10 +78,10 @@ class LoginViewModel(application: Application) : AndroidViewModel(application) {
                         )
                     }
                 )
-            } catch (e: Exception) {
+            } catch (t: Throwable) {
                 _uiState.value = _uiState.value.copy(
                     isRequestingOtp = false,
-                    error = e.message ?: "Unexpected error"
+                    error = t.message ?: "Unexpected error"
                 )
             }
         }
@@ -125,10 +122,10 @@ class LoginViewModel(application: Application) : AndroidViewModel(application) {
                         )
                     }
                 )
-            } catch (e: Exception) {
+            } catch (t: Throwable) {
                 _uiState.value = _uiState.value.copy(
                     isLoading = false,
-                    error = e.message ?: "OTP verification error"
+                    error = t.message ?: "OTP verification error"
                 )
             }
         }
