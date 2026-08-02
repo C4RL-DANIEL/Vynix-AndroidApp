@@ -39,15 +39,23 @@ class LoginViewModel(application: Application) : AndroidViewModel(application) {
         )
     }
 
-    init {
-        try {
-            tokenManager = TokenManager(getApplication())
+    /**
+     * Lazily initialise the secure token store.
+     * We defer to first use instead of blocking the main thread during ViewModel creation,
+     * because EncryptedSharedPreferences / MasterKey can be slow or fail on certain devices.
+     */
+    private fun getTokenManager(): TokenManager? {
+        tokenManager?.let { return it }
+        val tm = try {
+            TokenManager(getApplication())
         } catch (t: Throwable) {
-            // Show the error to the user, leave tokenManager null.
             _uiState.value = _uiState.value.copy(
                 error = "Could not initialise secure storage: ${t.javaClass.simpleName}: ${t.message}"
             )
+            return null
         }
+        tokenManager = tm
+        return tm
     }
 
     fun onEmailChange(value: String) {
@@ -120,7 +128,7 @@ class LoginViewModel(application: Application) : AndroidViewModel(application) {
                                 error = "Server returned an empty token"
                             )
                         } else {
-                            val tm = tokenManager
+                            val tm = getTokenManager()
                             if (tm == null) {
                                 _uiState.value = _uiState.value.copy(
                                     isLoading = false,

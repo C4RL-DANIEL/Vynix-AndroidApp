@@ -17,5 +17,5 @@ data class OtpResponse(
 @Serializable
 data class VerifyOtpRequest(
     @SerialName("email") val email: String,
-    val code: String
+    @SerialName("code") val code: String
 )

@@ -137,10 +137,9 @@ fun LoginScreen(onLoginSuccess: () -> Unit) {
                 }
             }
 
-            // Animated error area
-            val errorVisible by remember(state.error) {
-                derivedStateOf { state.error != null }
-            }
+            // Animated error area — derivedStateOf keeps a stable State object
+            // even across recompositions, avoiding animation glitches.
+            val errorVisible by remember { derivedStateOf { state.error != null } }
             AnimatedVisibility(
                 visible = errorVisible,
                 enter = fadeIn(animationSpec = tween(300)) +

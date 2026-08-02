@@ -7,6 +7,7 @@ import com.vynix.android.model.OtpRequest
 import com.vynix.android.model.OtpResponse
 import com.vynix.android.model.VerifyOtpRequest
 import com.vynix.android.model.RefreshTokenRequest
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.SerializationException
@@ -54,6 +55,7 @@ class AuthRepository {
                 Result.failure(Exception("Request email OTP failed (${response.code()}): $errorMsg"))
             }
         } catch (t: Throwable) {
+            if (t is CancellationException) throw t
             Result.failure(Exception(t.javaClass.simpleName + ": " + (t.message ?: "Unexpected OTP request error")))
         }
     }
@@ -82,6 +84,7 @@ class AuthRepository {
                 Result.failure(Exception("Verify email OTP failed (${response.code()}): $errorMsg"))
             }
         } catch (t: Throwable) {
+            if (t is CancellationException) throw t
             Result.failure(Exception(t.javaClass.simpleName + ": " + (t.message ?: "Unexpected OTP verification error")))
         }
     }
@@ -103,6 +106,7 @@ class AuthRepository {
                 Result.failure(Exception("Token refresh failed (${response.code()}): $errorMsg"))
             }
         } catch (t: Throwable) {
+            if (t is CancellationException) throw t
             Result.failure(Exception(t.javaClass.simpleName + ": " + (t.message ?: "Token refresh error")))
         }
     }
@@ -121,6 +125,7 @@ class AuthRepository {
                 Result.failure(Exception("Logout failed (${response.code()}): $errorMsg"))
             }
         } catch (t: Throwable) {
+            if (t is CancellationException) throw t
             Result.failure(Exception(t.javaClass.simpleName + ": " + (t.message ?: "Logout error")))
         }
     }
