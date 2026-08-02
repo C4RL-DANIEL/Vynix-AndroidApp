@@ -59,6 +59,7 @@ android {
 }
 
 dependencies {
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
     implementation("com.google.android.material:material:1.11.0")
     implementation(platform("androidx.compose:compose-bom:2024.01.00"))
 
